@@ -65,7 +65,55 @@ class CameraZOrder {
         reloadIDs();
     }
 
-    static function reloadIDs():Void {
+    public static function setCameraOrder(camera:FlxCamera, index:Int):Void {
+        if (index < 0) {
+            return moveVeryBehind(camera);
+        } else if (index >= FlxG.cameras.list.length) {
+            return moveVeryTop(camera);
+        }
+        var camObj = FlxG.cameras.list[index];
+        if (camObj == null || camera == null || FlxG.cameras.list.indexOf(camera) == -1) return;
+        var childIdx = FlxG.game.getChildIndex(camObj.flashSprite);
+        FlxG.game.removeChild(camera.flashSprite);
+		FlxG.cameras.list.remove(camera);
+        FlxG.game.addChildAt(camera.flashSprite, childIdx);
+        FlxG.cameras.list.insert(index, camera);
+        reloadIDs();
+    }
+
+    //it just add insert function for FlxG.cameras beside add()
+    public static function insert(camera:FlxCamera, index:Int, DefaultDrawTarget:Bool = true):FlxCamera {
+        if (camera == null) return null;
+        if (index >= FlxG.cameras.list.length) {
+            return FlxG.cameras.add(camera, DefaultDrawTarget);
+        } else {
+            while (index < 0) {//relative order?modulo relative order?idk
+                index += FlxG.cameras.list.length;
+            }
+            var camObj = FlxG.cameras.list[index];
+            if (camObj == null) {
+                return FlxG.cameras.add(camera, DefaultDrawTarget);
+            } else {
+                var childIdx = FlxG.game.getChildIndex(camObj.flashSprite);
+                FlxG.game.addChildAt(camera.flashSprite, childIdx);
+                FlxG.cameras.list.insert(index, camera);
+                if (DefaultDrawTarget) {
+                    @:privateAccess FlxG.cameras.defaults.push(camera);
+                }
+                reloadIDs();
+                FlxG.cameras.cameraAdded.dispatch(camera); 
+            }
+
+        }
+        return camera;
+    }
+
+    public static function getCameraOrder(camera:FlxCamera):Int {
+        if (camera != null) return FlxG.cameras.list.indexOf(camera);
+        return -1;
+    }
+
+    public static function reloadIDs():Void {
         for (i in 0...FlxG.cameras.list.length) {
             if (FlxG.cameras.list[i] != null) {
                 FlxG.cameras.list[i].ID = i;
