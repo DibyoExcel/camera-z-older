@@ -3,19 +3,17 @@ package;
 import flixel.FlxCamera;
 import flixel.FlxG;
 class CameraZOrder {
-    public static function moveBehind(camera:FlxCamera, targetCamera:FlxCamera):Void {
-        if (camera == null || targetCamera == null || FlxG.cameras.list.indexOf(camera) == -1 || FlxG.cameras.list.indexOf(targetCamera) == -1) return;
-        FlxG.game.removeChild(camera.flashSprite);
-        FlxG.cameras.list.remove(camera);
-        var targetIndex:Int = FlxG.game.getChildIndex(targetCamera.flashSprite);
-		var targetList = FlxG.cameras.list.indexOf(targetCamera);
-        FlxG.game.addChildAt(camera.flashSprite, targetIndex);
-        FlxG.cameras.list.insert(targetList, camera);
-        reloadIDs();
+    public static function moveOrderCamera(camera:FlxCamera, targetCamera:FlxCamera, behind:Bool = true):Void {
+        if (camera == null || targetCamera == null || getCameraOrder(camera) == -1 || getCameraOrder(targetCamera) == -1) return;
+        if (behind) {
+            setCameraOrder(camera, getCameraOrder(targetCamera));
+        } else {
+            setCameraOrder(camera, getCameraOrder(targetCamera) + 1);
+        }
     }
 
     public static function moveVeryTop(camera:FlxCamera):Void {
-        if (camera == null || FlxG.cameras.list.indexOf(camera) == -1) return;
+        if (camera == null || getCameraOrder(camera) == -1) return;
         FlxG.game.removeChild(camera.flashSprite);
         FlxG.cameras.list.remove(camera);
         FlxG.game.addChildAt(camera.flashSprite, @:privateAccess FlxG.game.getChildIndex(FlxG.game._inputContainer));
@@ -24,7 +22,7 @@ class CameraZOrder {
     }
 
     public static function moveVeryBehind(camera:FlxCamera):Void {
-        if (camera == null || FlxG.cameras.list.indexOf(camera) == -1) return;
+        if (camera == null || getCameraOrder(camera) == -1) return;
         var childIdx = -1;
         for (cam in FlxG.cameras.list) {
             if (cam != null) {
@@ -72,7 +70,7 @@ class CameraZOrder {
             return moveVeryTop(camera);
         }
         var camObj = FlxG.cameras.list[index];
-        if (camObj == null || camera == null || FlxG.cameras.list.indexOf(camera) == -1) return;
+        if (camObj == null || camera == null || getCameraOrder(camera) == -1) return;
         var childIdx = FlxG.game.getChildIndex(camObj.flashSprite);
         FlxG.game.removeChild(camera.flashSprite);
 		FlxG.cameras.list.remove(camera);
